@@ -9,6 +9,7 @@
     "migrate-latest": "knex migrate:latest",
     "migrate-rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
+    "seed-test": "NODE_ENV=test knex seed:run",
     "test-utils": "mocha spec/utils.spec.js",
     "test": "mocha spec/app.spec.js"
   },
