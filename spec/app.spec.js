@@ -31,7 +31,7 @@ describe('/api', () => {
             });
         });
     });
-    describe.only('/users/:username', () => {
+    describe('/users/:username', () => {
         describe('GET', () => {
             it('responds with status 200 and a user object with the properties username, avatar_url and name', () => {
                 return request.get('/api/users/butter_bridge')
@@ -56,6 +56,41 @@ describe('/api', () => {
                 .expect(404)
                 .then(({body}) => {
                     expect(body.msg).to.equal('Route not found')
+                })
+            });
+        });
+    });
+    describe('/articles/:article_id', () => {
+        describe.only('GET', () => {
+            it('responds with status 200 and an article object with the correct properties', () => {
+                return request.get('/api/articles/1')
+                .expect(200)
+                .then(({ body }) => {
+                    expect(body.article).to.eql({
+                        author: 'butter_bridge',
+                        title: 'Living in the shadow of a great man',
+                        article_id: 1,
+                        body: 'I find this existence challenging',
+                        topic: 'mitch',
+                        created_at: "2018-11-15T12:21:54.171Z"
+                        ,
+                        votes: 100,
+                        comment_count: 13
+                    })
+                });
+            });
+            it('responds with status 400 and bad request when passed an invalid article_id', () => {
+                return request.get('/api/articles/invalid_id')
+                .expect(400)
+                .then(({ body }) => {
+                    expect(body.msg).to.equal("Bad request")
+                })
+            });
+            it('responds with status 400 and bad request when passed  well formed id which doesnt exist i the database', () => {
+                return request.get('/api/articles/999')
+                .expect(404)
+                .then(({ body }) => {
+                    expect(body.msg).to.equal("article not found")
                 })
             });
         });
