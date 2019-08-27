@@ -31,4 +31,33 @@ describe('/api', () => {
             });
         });
     });
+    describe.only('/users/:username', () => {
+        describe('GET', () => {
+            it('responds with status 200 and a user object with the properties username, avatar_url and name', () => {
+                return request.get('/api/users/butter_bridge')
+                .expect(200)
+                .then(({ body }) => {
+                   expect(body.user).to.eql({
+                       username: "butter_bridge",
+                       avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg',
+                       name: "jonny"
+                   })
+                })
+            });
+            it('responds with status 404 when passed a username that doesnt exist', () => {
+                return request.get('/api/users/jbrookes')
+                .expect(404)
+                .then(({ body }) => {
+                    expect(body.msg).to.equal('User not found')
+                })
+            });
+            it('responds with status 404 when passed an incorrect url', () => {
+                return request.get('/api/user')
+                .expect(404)
+                .then(({body}) => {
+                    expect(body.msg).to.equal('Route not found')
+                })
+            });
+        });
+    });
 });
