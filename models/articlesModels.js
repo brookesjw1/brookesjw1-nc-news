@@ -1,13 +1,19 @@
 const connection = require("../db/connection");
 
-exports.fetchArticleById = id => {
+exports.fetchArticles = (id, {sort_by, order, author, topic}) => {
   return connection
-    .select("articles.*")
+    .select("articles.author",
+    "articles.title", "articles.article_id", "articles.topic", "articles.created_at", "articles.votes")
     .count({ comment_count: "comments.comment_id" })
     .from("articles")
     .leftJoin("comments", "articles.article_id", "comments.article_id")
     .groupBy("articles.article_id")
-    .where({ "articles.article_id": id })
+    .orderBy(sort_by || "created_at", order || "desc")
+    .modify((query) => {
+      if (id) query.where({ "articles.article_id": id }).select("articles.body");
+      if (author) query.where({"articles.author": author});
+      if (topic) query.where({"articles.topic": topic});
+    })
     .then(articles => {
       if (articles.length === 0)
         return Promise.reject({
@@ -23,7 +29,7 @@ exports.fetchArticleById = id => {
     });
 };
 
-exports.updateArticle = (body, id) => {
+exports.updateArticle = (id, body, query) => {
   return connection("articles")
     .where("article_id", "=", id)
     .increment("votes", body.inc_votes)
@@ -33,7 +39,7 @@ exports.updateArticle = (body, id) => {
           status: 400,
           msg: "Bad request"
         });
-      return exports.fetchArticleById(id);
+      return exports.fetchArticles(id, query);
     });
 };
 

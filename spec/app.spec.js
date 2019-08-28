@@ -102,6 +102,97 @@ describe("/api", () => {
     });
   });
   describe("/articles", () => {
+    describe("GET", () => {
+      it("responds with status 200 and an array of article objects, sorted by descending date by default", () => {
+        return request
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles[0]).to.have.all.keys(
+              "author",
+              "title",
+              "article_id",
+              "topic",
+              "created_at",
+              "votes",
+              "comment_count"
+            );
+            expect(body.articles).to.have.lengthOf(12);
+            expect(body.articles).to.be.sortedBy("created_at", {descending: true})
+          });
+      });
+      it('can be sorted by votes', () => {
+        return request.get('/api/articles?sort_by=votes').expect(200).then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("votes", {descending: true})
+        })
+      });
+      it('can have the order set to ascending', () => {
+        return request.get('/api/articles?order=asc').expect(200).then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("created_at")
+        })
+      });
+      it('can be filtered by author', () => {
+        return request.get('/api/articles?author=butter_bridge').expect(200).then(({ body }) => {
+          expect(body.articles).to.eql([
+            {
+              author: 'butter_bridge',
+              title: 'Living in the shadow of a great man',
+              article_id: 1,
+              topic: 'mitch',
+              created_at: "2018-11-15T12:21:54.171Z",
+              votes: 100,
+              comment_count: 13
+            },
+            {
+              author: 'butter_bridge',
+              title: "They're not exactly dogs, are they?",
+              article_id: 9,
+              topic: 'mitch',
+              created_at: "1986-11-23T12:21:54.171Z",
+              votes: 0,
+              comment_count: 2
+            },
+            {
+              author: 'butter_bridge',
+              title: 'Moustache',
+              article_id: 12,
+              topic: 'mitch',
+              created_at: "1974-11-26T12:21:54.171Z",
+              votes: 0,
+              comment_count: 0
+            }
+          ])
+        })
+      });
+      it('can be filtered by topic', () => {
+        return request.get('/api/articles?topic=cats').expect(200).then(({ body }) => {
+          expect(body.articles).to.eql([
+            {
+              author: 'rogersop',
+              title: 'UNCOVERED: catspiracy to bring down democracy',
+              article_id: 5,
+              topic: 'cats',
+              created_at: "2002-11-19T12:21:54.171Z",
+              votes: 0,
+              comment_count: 2
+            }
+          ])
+        })
+      });
+    });
+    describe('INVALID METHODS', () => {
+      it("status: 405 and method not allowed", () => {
+        const invalidMethods = ["patch", "put", "delete", "post"];
+        const methodPromises = invalidMethods.map(method => {
+          return request[method]("/api/articles")
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Method not allowed");
+            });
+        });
+        return Promise.all(methodPromises);
+      });
+    });
     describe("/articles/:article_id", () => {
       describe("GET", () => {
         it("responds with status 200 and an article object with the correct properties", () => {
@@ -264,7 +355,9 @@ describe("/api", () => {
               .get("/api/articles/5/comments")
               .expect(200)
               .then(({ body }) => {
-                expect(body.comments).to.be.sortedBy("created_at", {descending: true});
+                expect(body.comments).to.be.sortedBy("created_at", {
+                  descending: true
+                });
               });
           });
           it("responds with status 200 and comments are sorted by votes", () => {
@@ -272,7 +365,9 @@ describe("/api", () => {
               .get("/api/articles/5/comments?sort_by=votes")
               .expect(200)
               .then(({ body }) => {
-                expect(body.comments).to.be.sortedBy("votes", {descending: true});
+                expect(body.comments).to.be.sortedBy("votes", {
+                  descending: true
+                });
               });
           });
           it("responds with status 200 and comments are sorted by comment_id", () => {
@@ -280,7 +375,9 @@ describe("/api", () => {
               .get("/api/articles/5/comments?sort_by=comment_id")
               .expect(200)
               .then(({ body }) => {
-                expect(body.comments).to.be.sortedBy("comment_id", {descending: true});
+                expect(body.comments).to.be.sortedBy("comment_id", {
+                  descending: true
+                });
               });
           });
           it("responds with status 200 and comments are sorted in descending order by default", () => {
@@ -293,7 +390,7 @@ describe("/api", () => {
                 });
               });
           });
-          it('responds with status 200 and can be sorted in ascending order', () => {
+          it("responds with status 200 and can be sorted in ascending order", () => {
             return request
               .get("/api/articles/5/comments?order=asc")
               .expect(200)
@@ -304,17 +401,20 @@ describe("/api", () => {
         });
         describe("POST", () => {
           it("responds with status 200 and the posted comment", () => {
-            return request.post("/api/articles/1/comments").send({username: 'butter_bridge', body: 'bla bla bla'}).expect(200)
-            .then(({ body }) => {
-              expect(body.comment[0]).to.have.all.keys(
-                "article_id",
-                "author",
-                "body",
-                "comment_id",
-                "created_at",
-                "votes"
-              )
-            });
+            return request
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge", body: "bla bla bla" })
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment[0]).to.have.all.keys(
+                  "article_id",
+                  "author",
+                  "body",
+                  "comment_id",
+                  "created_at",
+                  "votes"
+                );
+              });
           });
         });
         describe("INVALID METHODS", () => {
