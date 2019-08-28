@@ -33,6 +33,41 @@ exports.updateArticle = (body, id) => {
           status: 400,
           msg: "Bad request"
         });
-      return this.fetchArticleById(id)
-    })
+      return exports.fetchArticleById(id);
+    });
 };
+
+exports.fetchCommentsByArticleId = (article_id, {sort_by, order }) => {
+  return connection
+    .select("comment_id", "votes", "created_at", "author", "body")
+    .from("comments")
+    .where("article_id", "=", article_id)
+    .orderBy(sort_by || 'created_at', order || "desc");
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// exports.insertComment = (comment, articleId) => {
+//   return (
+//     connection
+//       .select("*")
+//       .from("articles")
+//       // .join("articles", "comments.article_id", "articles.article_id")
+//       // .insert(comment)
+//       .returning("*")
+//       .then(console.log)
+//   );
+// };

@@ -2,6 +2,8 @@ process.env.NODE_ENV = "test";
 const app = require("../app");
 const request = require("supertest")(app);
 const chai = require("chai");
+const chaiSorted = require("chai-sorted");
+chai.use(chaiSorted);
 const { expect } = chai;
 const connection = require("../db/connection");
 
@@ -37,21 +39,21 @@ describe("/api", () => {
           });
       });
     });
-    describe('INVALID METHODS', () => {
-      it('status: 405 and method not allowed', () => {
-        const invalidMethods = ['patch', 'put', 'delete', 'post'];
-        const methodPromises = invalidMethods.map((method) => {
-          return request[method]('/api/topics')
-          .expect(405)
-          .then(({ body }) => {
-            expect(body.msg).to.equal('Method not allowed');
-          });
+    describe("INVALID METHODS", () => {
+      it("status: 405 and method not allowed", () => {
+        const invalidMethods = ["patch", "put", "delete", "post"];
+        const methodPromises = invalidMethods.map(method => {
+          return request[method]("/api/topics")
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Method not allowed");
+            });
         });
         return Promise.all(methodPromises);
       });
     });
   });
-  describe('/users', () => {
+  describe("/users", () => {
     describe("/users/:username", () => {
       describe("GET", () => {
         it("responds with status 200 and a user object with the properties username, avatar_url and name", () => {
@@ -84,22 +86,22 @@ describe("/api", () => {
             });
         });
       });
-      describe('INVALID METHODS', () => {
-        it('status: 405 and method not allowed', () => {
-          const invalidMethods = ['patch', 'put', 'delete', 'post'];
-          const methodPromises = invalidMethods.map((method) => {
-            return request[method]('/api/users/butter_bridge')
-            .expect(405)
-            .then(({ body }) => {
-              expect(body.msg).to.equal('Method not allowed');
-            });
+      describe("INVALID METHODS", () => {
+        it("status: 405 and method not allowed", () => {
+          const invalidMethods = ["patch", "put", "delete", "post"];
+          const methodPromises = invalidMethods.map(method => {
+            return request[method]("/api/users/butter_bridge")
+              .expect(405)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Method not allowed");
+              });
           });
           return Promise.all(methodPromises);
         });
       });
     });
   });
-  describe('/articles', () => {
+  describe("/articles", () => {
     describe("/articles/:article_id", () => {
       describe("GET", () => {
         it("responds with status 200 and an article object with the correct properties", () => {
@@ -182,7 +184,7 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-  
+
         it("responds with status 400 and error message when passed an invalid inc_votes", () => {
           return request
             .patch("/api/articles/1")
@@ -204,8 +206,8 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-  
-        it('responds with status 404 when passed a valid id which does not exist', () => {
+
+        it("responds with status 404 when passed a valid id which does not exist", () => {
           return request
             .patch("/api/articles/99")
             .send({ inc_votes: 100 })
@@ -215,20 +217,98 @@ describe("/api", () => {
             });
         });
       });
-      describe('INVALID METHODS', () => {
-        it('status: 405 and method not allowed', () => {
-          const invalidMethods = ['put', 'delete', 'post'];
-          const methodPromises = invalidMethods.map((method) => {
-            return request[method]('/api/articles/1')
-            .expect(405)
-            .then(({ body }) => {
-              expect(body.msg).to.equal('Method not allowed');
-            });
+      describe("INVALID METHODS", () => {
+        it("status: 405 and method not allowed", () => {
+          const invalidMethods = ["put", "delete", "post"];
+          const methodPromises = invalidMethods.map(method => {
+            return request[method]("/api/articles/1")
+              .expect(405)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Method not allowed");
+              });
           });
           return Promise.all(methodPromises);
         });
       });
+      describe("/articles/:article_id/comments", () => {
+        describe("GET", () => {
+          it("responds with status 200 and the array of comments", () => {
+            return request
+              .get("/api/articles/5/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.have.lengthOf(2);
+                expect(body.comments).to.eql([
+                  {
+                    comment_id: 14,
+                    author: "icellusedkars",
+                    votes: 16,
+                    created_at: "2004-11-25T12:36:03.389Z",
+                    body:
+                      "What do you see? I have no idea where this will lead " +
+                      "us. This place I speak of, is known as the Black " +
+                      "Lodge."
+                  },
+                  {
+                    comment_id: 15,
+                    author: "butter_bridge",
+                    votes: 1,
+                    created_at: "2003-11-26T12:36:03.389Z",
+                    body: "I am 100% sure that we're not completely sure."
+                  }
+                ]);
+              });
+          });
+          it("responds with status 200 and comments are sorted by created_at by default", () => {
+            return request
+              .get("/api/articles/5/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at", {descending: true});
+              });
+          });
+          it("responds with status 200 and comments are sorted by votes", () => {
+            return request
+              .get("/api/articles/5/comments?sort_by=votes")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("votes", {descending: true});
+              });
+          });
+          it("responds with status 200 and comments are sorted by comment_id", () => {
+            return request
+              .get("/api/articles/5/comments?sort_by=comment_id")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("comment_id", {descending: true});
+              });
+          });
+          it("responds with status 200 and comments are sorted in descending order by default", () => {
+            return request
+              .get("/api/articles/5/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at", {
+                  descending: true
+                });
+              });
+          });
+          it('responds with status 200 and can be sorted in ascending order', () => {
+            return request
+              .get("/api/articles/5/comments?order=asc")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at");
+              });
+          });
+        });
+        // describe("POST", () => {
+        //   it("responds with status 200 and the posted comment", () => {
+        //     return request.post("/api/articles/1/comments").send({username: 'butter_bridge', body: 'bla bla bla'}).expect(200);
+        //   });
+        // });
+        describe("INVALID METHODS", () => {});
+      });
     });
   });
- 
 });
