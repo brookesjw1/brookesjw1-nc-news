@@ -13,3 +13,9 @@ exports.updateComment = (comment_id, body) => {
         .where("comment_id", "=", comment_id);
     });
 };
+
+exports.removeComment = comment_id => {
+    return connection("comments")
+    .where("comment_id", "=", comment_id)
+    .del();
+}

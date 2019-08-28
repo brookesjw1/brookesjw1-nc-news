@@ -466,6 +466,11 @@ describe("/api", () => {
           });
         });
       });
+      describe('DELETE', () => {
+        it('responds with status 204', () => {
+          return request.delete('/api/comments/2').expect(204)
+        });
+      });
       describe('INVALID METHODS', () => {
         it("status: 405 and method not allowed", () => {
           const invalidMethods = ["put", "post", "get"];
