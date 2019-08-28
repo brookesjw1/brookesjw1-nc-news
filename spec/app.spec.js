@@ -433,4 +433,52 @@ describe("/api", () => {
       });
     });
   });
+  describe('/comments', () => {
+    describe('/:comment_id', () => {
+      describe('PATCH', () => {
+        it('responds with status 200 and the updated comment when passed a positive inc_votes', () => {
+          return request.patch('/api/comments/1').send({
+            inc_votes: 10
+          }).expect(200).then(({ body }) => {
+            expect(body.comment).to.eql(  {
+              author: 'butter_bridge',
+              title: "They're not exactly dogs, are they?",
+              votes: 26,
+              created_at: "2017-11-22T12:36:03.389Z",
+              body: "Oh, I've got compassion running out of my " +
+                "nose, pal! I'm the Sultan of Sentiment!"
+            }
+          )
+          });
+        });
+        it('responds with status 200 and the updated comment when passed a negative inc_votes', () => {
+          return request.patch('/api/comments/1').send({
+            inc_votes: -10
+          }).expect(200).then(({ body }) => {
+            expect(body.comment).to.eql(  {
+              author: 'butter_bridge',
+              title: "They're not exactly dogs, are they?",
+              votes: 6,
+              created_at: "2017-11-22T12:36:03.389Z",
+              body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+            }
+          )
+          });
+        });
+      });
+      describe('INVALID METHODS', () => {
+        it("status: 405 and method not allowed", () => {
+          const invalidMethods = ["put", "post", "get"];
+          const methodPromises = invalidMethods.map(method => {
+            return request[method]("/api/comments/1")
+              .expect(405)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Method not allowed");
+              });
+          });
+          return Promise.all(methodPromises);
+        });
+      });
+    });
+  });
 });

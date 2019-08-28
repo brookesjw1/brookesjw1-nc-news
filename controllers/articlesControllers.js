@@ -2,6 +2,7 @@ const { updateArticle, insertComment, fetchCommentsByArticleId, fetchArticles } 
 
 exports.getArticleById = (req,res,next) => {
     const { article_id } = req.params;
+    // is there a way of not passing through req.query
     fetchArticles(article_id, req.query)
     .then(([article]) => {
         res.status(200).send({ article })
@@ -19,7 +20,6 @@ exports.patchArticle = (req, res, next ) => {
 }
 
 exports.getCommentsByArticleId = (req,res,next) => {
-    // const { sort_by } = req.query;
     const { article_id } = req.params;
     fetchCommentsByArticleId(article_id, req.query).then((comments) => {
         res.status(200).send({ comments })

@@ -39,6 +39,7 @@ exports.updateArticle = (id, body, query) => {
           status: 400,
           msg: "Bad request"
         });
+        // is there a way of not passing through a query??????
       return exports.fetchArticles(id, query);
     });
 };
@@ -62,6 +63,5 @@ exports.insertComment = (comment, articleId) => {
         "body": comment.body
       })
       .returning("*")
-      // .then(console.log)
   );
 };
