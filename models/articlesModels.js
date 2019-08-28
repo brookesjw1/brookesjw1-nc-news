@@ -23,27 +23,16 @@ exports.fetchArticleById = id => {
     });
 };
 
-exports.updateArticle = (inc_votes, id) => {
+exports.updateArticle = (body, id) => {
   return connection("articles")
     .where("article_id", "=", id)
-    .increment("votes", inc_votes)
+    .increment("votes", body.inc_votes)
     .then(() => {
-      if (!inc_votes)
+      if (!body.inc_votes || Object.keys(body).length > 1)
         return Promise.reject({
           status: 400,
           msg: "Bad request"
         });
-      return connection("articles")
-        .select("*")
-        .where("article_id", "=", id);
+      return this.fetchArticleById(id)
     })
-    .then(article => {
-      // why does this not generate an error if there is no article???
-      if (!article[0])
-        return Promise.reject({
-          status: 400,
-          msg: "Bad request"
-        });
-      else return article[0];
-    });
 };

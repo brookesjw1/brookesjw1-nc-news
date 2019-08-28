@@ -11,10 +11,8 @@ exports.getArticleById = (req,res,next) => {
 
 exports.patchArticle = (req, res, next ) => {
     const { article_id } = req.params;
-    const { inc_votes } = req.body;
-    if (Object.keys(req.body).length > 1) next({ code: "XtraProp"})
-    updateArticle(inc_votes, article_id)
-    .then(article => {
+    updateArticle(req.body, article_id)
+    .then(([article]) => {
         res.status(200).send({ article })
     })
     .catch(next)

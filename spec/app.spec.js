@@ -101,7 +101,7 @@ describe("/api", () => {
   });
   describe('/articles', () => {
     describe("/articles/:article_id", () => {
-      describe.only("GET", () => {
+      describe("GET", () => {
         it("responds with status 200 and an article object with the correct properties", () => {
           return request
             .get("/api/articles/1")
@@ -127,7 +127,7 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-        it("responds with status 400 and bad request when passed  well formed id which doesnt exist i the database", () => {
+        it("responds with status 404 and article not found when passed  well formed id which doesnt exist i the database", () => {
           return request
             .get("/api/articles/999")
             .expect(404)
@@ -150,7 +150,8 @@ describe("/api", () => {
                 votes: 101,
                 topic: "mitch",
                 author: "butter_bridge",
-                created_at: "2018-11-15T12:21:54.171Z"
+                created_at: "2018-11-15T12:21:54.171Z",
+                comment_count: 13
               });
             });
         });
@@ -167,7 +168,8 @@ describe("/api", () => {
                 votes: 90,
                 topic: "mitch",
                 author: "butter_bridge",
-                created_at: "2018-11-15T12:21:54.171Z"
+                created_at: "2018-11-15T12:21:54.171Z",
+                comment_count: 13
               });
             });
         });
@@ -180,7 +182,6 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-        // is this correct?!?!?!
   
         it("responds with status 400 and error message when passed an invalid inc_votes", () => {
           return request
@@ -203,15 +204,14 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-        // is this correct?!?!?!
   
-        it('responds with status 400 when passed a valid id which does not exist', () => {
+        it('responds with status 404 when passed a valid id which does not exist', () => {
           return request
             .patch("/api/articles/99")
             .send({ inc_votes: 100 })
-            .expect(400)
+            .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Bad request");
+              expect(body.msg).to.equal("article not found");
             });
         });
       });
