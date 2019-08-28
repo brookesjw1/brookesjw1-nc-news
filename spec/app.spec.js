@@ -302,12 +302,34 @@ describe("/api", () => {
               });
           });
         });
-        // describe("POST", () => {
-        //   it("responds with status 200 and the posted comment", () => {
-        //     return request.post("/api/articles/1/comments").send({username: 'butter_bridge', body: 'bla bla bla'}).expect(200);
-        //   });
-        // });
-        describe("INVALID METHODS", () => {});
+        describe("POST", () => {
+          it("responds with status 200 and the posted comment", () => {
+            return request.post("/api/articles/1/comments").send({username: 'butter_bridge', body: 'bla bla bla'}).expect(200)
+            .then(({ body }) => {
+              expect(body.comment[0]).to.have.all.keys(
+                "article_id",
+                "author",
+                "body",
+                "comment_id",
+                "created_at",
+                "votes"
+              )
+            });
+          });
+        });
+        describe("INVALID METHODS", () => {
+          it("status: 405 and method not allowed", () => {
+            const invalidMethods = ["put", "delete", "patch"];
+            const methodPromises = invalidMethods.map(method => {
+              return request[method]("/api/articles/1/comments")
+                .expect(405)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal("Method not allowed");
+                });
+            });
+            return Promise.all(methodPromises);
+          });
+        });
       });
     });
   });

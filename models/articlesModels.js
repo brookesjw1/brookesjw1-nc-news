@@ -45,29 +45,17 @@ exports.fetchCommentsByArticleId = (article_id, {sort_by, order }) => {
     .orderBy(sort_by || 'created_at', order || "desc");
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// exports.insertComment = (comment, articleId) => {
-//   return (
-//     connection
-//       .select("*")
-//       .from("articles")
-//       // .join("articles", "comments.article_id", "articles.article_id")
-//       // .insert(comment)
-//       .returning("*")
-//       .then(console.log)
-//   );
-// };
+exports.insertComment = (comment, articleId) => {
+  return (
+    connection
+      .select("*")
+      .from("comments")
+      .insert({
+        "author": comment.username,
+        "article_id": articleId,
+        "body": comment.body
+      })
+      .returning("*")
+      // .then(console.log)
+  );
+};

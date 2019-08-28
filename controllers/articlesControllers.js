@@ -27,25 +27,12 @@ exports.getCommentsByArticleId = (req,res,next) => {
     .catch(next)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-// exports.postCommentToArticle = (req, res, next) => {
-//     const { article_id } = req.params;
-//     const comment = req.body;
-//     insertComment(comment, article_id).then((comment) => {
-//         res.status(200).send({ comment })
-//     })
-//     .catch(next)
-// }
+exports.postCommentToArticle = (req, res, next) => {
+    const { article_id } = req.params;
+    const comment = req.body;
+    insertComment(comment, article_id).then((comment) => {
+        res.status(200).send({ comment })
+    })
+    .catch(next)
+}
 
