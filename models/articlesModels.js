@@ -1,6 +1,6 @@
 const connection = require("../db/connection");
 
-exports.fetchArticles = (id, { sort_by, order, author, topic }) => {
+exports.fetchArticles = (id, sort_by, order, author, topic) => {
   return connection
     .select(
       "articles.author",
@@ -41,12 +41,12 @@ exports.fetchArticles = (id, { sort_by, order, author, topic }) => {
     });
 };
 
-exports.updateArticle = (id, body, query) => {
+exports.updateArticle = (id, body) => {
   return connection("articles")
     .where("article_id", "=", id)
     .increment("votes", body.inc_votes)
     .then(() => {
-      return exports.fetchArticles(id, query);
+      return exports.fetchArticles(id);
     });
 };
 

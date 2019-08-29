@@ -2,7 +2,7 @@ const { updateArticle, insertComment, fetchCommentsByArticleId, fetchArticles } 
 
 exports.getArticleById = (req,res,next) => {
     const { article_id } = req.params;
-    fetchArticles(article_id, req.query)
+    fetchArticles(article_id)
     .then(([article]) => {
         res.status(200).send({ article })
     })
@@ -14,7 +14,7 @@ exports.patchArticle = (req, res, next ) => {
     if (!req.body.inc_votes || Object.keys(req.body).length > 1) next({status: 400,
         msg: "Bad request"})
 
-    updateArticle(article_id, req.body, req.query)
+    updateArticle(article_id, req.body)
     .then(([article]) => {
         res.status(200).send({ article })
     })
@@ -45,7 +45,8 @@ exports.postCommentToArticle = (req, res, next) => {
 }
 
 exports.getArticles = (req, res, next) => {
-    fetchArticles(undefined, req.query).then((articles) => {
+    const { sort_by, order, author, topic } = req.query
+    fetchArticles(undefined, sort_by, order, author, topic).then((articles) => {
         res.status(200).send({ articles })
     })
     .catch(next)
