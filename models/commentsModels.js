@@ -3,7 +3,9 @@ const connection = require("../db/connection");
 exports.updateComment = (comment_id, body) => {
   return connection("comments")
     .where("comment_id", "=", comment_id)
-    .increment("votes", body.inc_votes)
+    .modify((query) => {
+      if (body.inc_votes) query.increment("votes", body.inc_votes)
+    })
     .then((incCount) => {
       if (incCount === 0) return Promise.reject({
         status:404,

@@ -11,7 +11,7 @@ exports.getArticleById = (req,res,next) => {
 
 exports.patchArticle = (req, res, next ) => {
     const { article_id } = req.params;
-    if (!req.body.inc_votes || Object.keys(req.body).length > 1) next({status: 400,
+    if (Object.keys(req.body).length > 1) next({status: 400,
         msg: "Bad request"})
 
     updateArticle(article_id, req.body)
@@ -38,8 +38,8 @@ exports.postCommentToArticle = (req, res, next) => {
     }
     delete comment.username;
 
-    insertComment(comment, article_id).then((comment) => {
-        res.status(200).send({ comment })
+    insertComment(comment, article_id).then((comments) => {
+        res.status(201).send({ comments })
     })
     .catch(next)
 }

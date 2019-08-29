@@ -10,6 +10,15 @@ const connection = require("../db/connection");
 describe("/api", () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
+  describe('DELETE', () => {
+    it('status: 405 and method not allowed', () => {
+      return request.delete('/api')
+      .expect(405)
+      .then(({ body }) => {
+        expect(body.msg).to.equal("Method not allowed")
+      })
+    });
+  });
   describe("/topics", () => {
     describe("GET", () => {
       it("returns status 200 and responds with an array of topic objects, each of which should have slug and description properties", () => {
@@ -146,7 +155,7 @@ describe("/api", () => {
               topic: 'mitch',
               created_at: "2018-11-15T12:21:54.171Z",
               votes: 100,
-              comment_count: 13
+              comment_count: '13'
             },
             {
               author: 'butter_bridge',
@@ -155,7 +164,7 @@ describe("/api", () => {
               topic: 'mitch',
               created_at: "1986-11-23T12:21:54.171Z",
               votes: 0,
-              comment_count: 2
+              comment_count: '2'
             },
             {
               author: 'butter_bridge',
@@ -164,7 +173,7 @@ describe("/api", () => {
               topic: 'mitch',
               created_at: "1974-11-26T12:21:54.171Z",
               votes: 0,
-              comment_count: 0
+              comment_count: '0'
             }
           ])
         })
@@ -179,7 +188,7 @@ describe("/api", () => {
               topic: 'cats',
               created_at: "2002-11-19T12:21:54.171Z",
               votes: 0,
-              comment_count: 2
+              comment_count: '2'
             }
           ])
         })
@@ -261,7 +270,7 @@ describe("/api", () => {
                 topic: "mitch",
                 created_at: "2018-11-15T12:21:54.171Z",
                 votes: 100,
-                comment_count: 13
+                comment_count: '13'
               });
             });
         });
@@ -297,7 +306,7 @@ describe("/api", () => {
                 topic: "mitch",
                 author: "butter_bridge",
                 created_at: "2018-11-15T12:21:54.171Z",
-                comment_count: 13
+                comment_count: '13'
               });
             });
         });
@@ -315,17 +324,27 @@ describe("/api", () => {
                 topic: "mitch",
                 author: "butter_bridge",
                 created_at: "2018-11-15T12:21:54.171Z",
-                comment_count: 13
+                comment_count: '13'
               });
             });
         });
-        it("responds with status 400 and error message when passed a patch with no inc_votes on the body", () => {
+        it("responds with status 200 and unchanged article when passed a patch with no inc_votes on the body", () => {
           return request
             .patch("/api/articles/1")
             .send({})
-            .expect(400)
+            .expect(200)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Bad request");
+              expect(body.article).to.eql({
+                author: 'butter_bridge',
+                title: 'Living in the shadow of a great man',
+                article_id: 1,
+                topic: 'mitch',
+                created_at: "2018-11-15T12:21:54.171Z",
+                votes: 101,
+                comment_count: '13',
+                body: 'I find this existence challenging'
+              }
+              )
             });
         });
 
@@ -467,6 +486,14 @@ describe("/api", () => {
               expect(body.msg).to.equal("Route not found")
             });
           });
+          it('status: 200 when passed an article which exists with no comments', () => {
+            return request
+              .get("/api/articles/2/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.eql([]);
+              });
+          });
           it('status: 400 when trying to sort by a column which does not exist', () => {
             return request
               .get("/api/articles/5/comments?sort_by=nonexistentColumn")
@@ -489,19 +516,18 @@ describe("/api", () => {
             return request
               .post("/api/articles/1/comments")
               .send({ username: "butter_bridge", body: "bla bla bla" })
-              .expect(200)
+              .expect(201)
               .then(({ body }) => {
-                expect(body.comment[0]).to.have.all.keys(
-                  "article_id",
+                expect(body.comments[0]).to.have.all.keys(
+                  "comment_id",
                   "author",
                   "body",
-                  "comment_id",
-                  "created_at",
-                  "votes"
+                  "votes",
+                  "created_at"
                 );
               });
           });
-          it('responds with status 400 when missing required columns', () => {
+          it('responds with status 400 when missing body', () => {
             return request
               .post("/api/articles/1/comments")
               .send({ username: "butter_bridge"})
@@ -509,6 +535,15 @@ describe("/api", () => {
               .then(({ body })=> {
                 expect(body.msg).to.equal("Bad request")
               })
+          });
+          it('status: 400 when missing username', () => {
+            return request
+            .post("/api/articles/1/comments")
+            .send({ body: "bla bla"})
+            .expect(400)
+            .then(({ body })=> {
+              expect(body.msg).to.equal("Bad request")
+            })
           });
           it('responds with status 400 when adding nonexistent columns', () => {
             return request
@@ -577,13 +612,20 @@ describe("/api", () => {
           )
           });
         });
-        it('status: 400 when passed a patch with no inc_votes on the body', () => {
+        it('status: 200 and the unaltered comment when passed a patch with no inc_votes on the body', () => {
           return request
             .patch('/api/comments/1')
             .send({ })
-            .expect(400)
+            .expect(200)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Bad request")
+              expect(body.comment).to.eql({
+                author: 'butter_bridge',
+                title: "They're not exactly dogs, are they?",
+                votes: 16,
+                created_at: '2017-11-22T12:36:03.389Z',
+                body: "Oh, I've got compassion running out of my " +
+                  "nose, pal! I'm the Sultan of Sentiment!"
+              })
           });
         });
         it('status: 400 when passed an invalid inc_votes', () => {

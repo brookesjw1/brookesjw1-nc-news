@@ -1,5 +1,16 @@
 const connection = require("../db/connection");
 
+const checkArticleExists = article_id => {
+  return connection
+          .first("*")
+          .from("articles")
+          .where({article_id})
+          .then(article => {
+            if (article) return true;
+            else return false;
+          });
+};
+
 exports.fetchArticles = (id, sort_by, order, author, topic) => {
   return connection
     .select(
@@ -28,16 +39,13 @@ exports.fetchArticles = (id, sort_by, order, author, topic) => {
           msg: "Route not found"
         });
 
-        if (!order || order === "asc" || order === "desc") {return articles.map(article => {
-          return {
-            ...article,
-            comment_count: +article.comment_count
-          };
-        });}
-      else return Promise.reject({
-        status:400,
-        msg: "Bad request"
-      })
+      if (!order || order === "asc" || order === "desc") {
+        return articles;
+      } else
+        return Promise.reject({
+          status: 400,
+          msg: "Bad request"
+        });
     });
 };
 
@@ -57,15 +65,22 @@ exports.fetchCommentsByArticleId = (article_id, { sort_by, order }) => {
     .where("article_id", "=", article_id)
     .orderBy(sort_by || "created_at", order || "desc")
     .then(comments => {
-      if (comments.length === 0)
-        return Promise.reject({ 
-          status: 404,
-          msg: "Route not found" 
-        });
-      if (!order || order === "asc" || order === "desc")return comments;
+      const articleExistsCheck = comments.length
+        ? true
+        : checkArticleExists(article_id);
+      return Promise.all([comments, articleExistsCheck]);
+    })
+    .then(([comments, articleExists]) => {
+      if (articleExists) {
+        if (!order || order === "asc" || order === "desc") return comments;
+          else
+            return Promise.reject({
+              status: 400,
+              msg: "Bad request"
+            });}
       else return Promise.reject({
-        status: 400,
-        msg: "Bad request"
+        status:404,
+        msg: "Route not found"
       })
     });
 };
@@ -75,5 +90,9 @@ exports.insertComment = comment => {
     .select("*")
     .from("comments")
     .insert(comment)
-    .returning("*");
+    .then(() => {
+      return connection
+        .select("comment_id", "author", "body", "votes", "created_at")
+        .from("comments");
+    });
 };
