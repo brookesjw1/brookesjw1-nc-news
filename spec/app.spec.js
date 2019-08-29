@@ -10,16 +10,16 @@ const connection = require("../db/connection");
 describe("/api", () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
-  // describe('GET', () => {
-  //   it('returns a JSON containing all available endpoints', () => {
-  //     return request
-  //     .get('/api')
-  //     .expect(200)
-  //     .then(({ body }) => {
-  //       console.log(body.endpoints)
-  //     })
-  //   });
-  // });
+  describe('GET', () => {
+    it('returns a JSON containing all available endpoints', () => {
+      return request
+      .get('/api')
+      .expect(200)
+      .then(({ body }) => {
+        expect(Object.keys(body.endpoints)).to.have.lengthOf(10);
+      })
+    });
+  });
   describe("INVALID METHODS", () => {
     it("status: 405 and method not allowed", () => {
       const invalidMethods = ["patch", "put", "delete", "post"];
