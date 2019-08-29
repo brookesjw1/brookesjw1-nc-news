@@ -122,12 +122,17 @@ describe("/api", () => {
           });
       });
       it('can be sorted by votes', () => {
-        return request.get('/api/articles?sort_by=votes').expect(200).then(({ body }) => {
+        return request
+        .get('/api/articles?sort_by=votes').expect(200)
+        .then(({ body }) => {
           expect(body.articles).to.be.sortedBy("votes", {descending: true})
         })
       });
       it('can have the order set to ascending', () => {
-        return request.get('/api/articles?order=asc').expect(200).then(({ body }) => {
+        return request
+            .get('/api/articles?order=asc')
+            .expect(200)
+            .then(({ body }) => {
           expect(body.articles).to.be.sortedBy("created_at")
         })
       });
@@ -179,6 +184,54 @@ describe("/api", () => {
           ])
         })
       });
+      it('status: 400 when trying to sort by a column that doesnt exist', () => {
+        return request
+        .get('/api/articles?sort_by=nonexistentColumn')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal("Bad request")
+        })
+      });
+      it('status: 400 when trying to order by anything other than ascending or descending', () => {
+        return request
+            .get('/api/articles?order=invalid')
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+        })
+      });
+      it('status:404 when trying to filter by an author that is not in the database', () => {
+        return request
+          .get('/api/articles?author=jbrookes')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Route not found")
+        })
+      });
+      it('status:404 when trying to filter by a topic that is not in the database', () => {
+        return request
+          .get('/api/articles?topic=nonexistent')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Route not found")
+        })
+      });
+      it('status: 404 when trying to filter by a valid author with no articles associated', () => {
+        return request
+        .get('/api/articles?author=lurker')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal("Route not found")
+      })
+      });
+      it('status:404 when trying to filter by a valid topic with no articles associated', () => {
+        return request
+          .get('/api/articles?topic=paper')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Route not found")
+        })
+      });
     });
     describe('INVALID METHODS', () => {
       it("status: 405 and method not allowed", () => {
@@ -193,7 +246,7 @@ describe("/api", () => {
         return Promise.all(methodPromises);
       });
     });
-    describe("/articles/:article_id", () => {
+    describe("/:article_id", () => {
       describe("GET", () => {
         it("responds with status 200 and an article object with the correct properties", () => {
           return request
@@ -220,12 +273,12 @@ describe("/api", () => {
               expect(body.msg).to.equal("Bad request");
             });
         });
-        it("responds with status 404 and article not found when passed  well formed id which doesnt exist i the database", () => {
+        it("responds with status 404 and article not found when passed  well formed id which doesnt exist in the database", () => {
           return request
             .get("/api/articles/999")
             .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal("article not found");
+              expect(body.msg).to.equal("Route not found");
             });
         });
       });
@@ -304,7 +357,7 @@ describe("/api", () => {
             .send({ inc_votes: 100 })
             .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal("article not found");
+              expect(body.msg).to.equal("Route not found");
             });
         });
       });
@@ -321,7 +374,7 @@ describe("/api", () => {
           return Promise.all(methodPromises);
         });
       });
-      describe("/articles/:article_id/comments", () => {
+      describe("/comments", () => {
         describe("GET", () => {
           it("responds with status 200 and the array of comments", () => {
             return request
@@ -398,6 +451,38 @@ describe("/api", () => {
                 expect(body.comments).to.be.sortedBy("created_at");
               });
           });
+          it('status: 400 when passed an invalid article id', () => {
+            return request
+            .get("/api/articles/invalidId/comments")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+            });
+          });
+          it('status: 404 when passed a valid article id which doesnt exist', () => {
+            return request
+            .get("/api/articles/999/comments")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Route not found")
+            });
+          });
+          it('status: 400 when trying to sort by a column which does not exist', () => {
+            return request
+              .get("/api/articles/5/comments?sort_by=nonexistentColumn")
+              .expect(400)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Bad request")
+              });
+          });
+          it('status: 400 when trying to order by something other than asc or desc', () => {
+            return request
+              .get("/api/articles/5/comments?order=invalid")
+              .expect(400)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Bad request")
+              });
+          });
         });
         describe("POST", () => {
           it("responds with status 200 and the posted comment", () => {
@@ -414,6 +499,33 @@ describe("/api", () => {
                   "created_at",
                   "votes"
                 );
+              });
+          });
+          it('responds with status 400 when missing required columns', () => {
+            return request
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge"})
+              .expect(400)
+              .then(({ body })=> {
+                expect(body.msg).to.equal("Bad request")
+              })
+          });
+          it('responds with status 400 when adding nonexistent columns', () => {
+            return request
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge", body: "bla bla bla", invalidColumn: "abc"})
+              .expect(400)
+              .then(({ body })=> {
+                expect(body.msg).to.equal("Bad request")
+              })
+          });
+          it('status: 422 when posting correctly formatted id which does not exist', () => {
+            return request
+              .post("/api/articles/999/comments")
+              .send({ username: "butter_bridge", body: "bla bla bla" })
+              .expect(422)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Unprocessable entity")
               });
           });
         });
@@ -465,10 +577,64 @@ describe("/api", () => {
           )
           });
         });
+        it('status: 400 when passed a patch with no inc_votes on the body', () => {
+          return request
+            .patch('/api/comments/1')
+            .send({ })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+          });
+        });
+        it('status: 400 when passed an invalid inc_votes', () => {
+          return request
+            .patch('/api/comments/1')
+            .send({ inc_votes: "abc"})
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+          });
+        });
+        it('status: 400 when passed a patch with extra properties', () => {
+          return request
+          .patch('/api/comments/1')
+          .send({ inc_votes: 10, title: "new title"})
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Bad request")
+        });
+        });
+        it('status: 404 when passed a valid id that doesnt exist', () => {
+          return request
+            .patch('/api/comments/99')
+            .send({ inc_votes: 10 })
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Route not found")
+          });
+        });
       });
       describe('DELETE', () => {
         it('responds with status 204', () => {
-          return request.delete('/api/comments/2').expect(204)
+          return request
+            .delete('/api/comments/2')
+            .expect(204)
+        });
+        it('status: 400 when trying to delete an invalid id', () => {
+          return request
+            .delete('/api/comments/invalid')
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+            })
+        });
+        it('status: 404 when trying to delete a valid id which does not exist', () => {
+          return request
+          .delete('/api/comments/999')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Route not found")
+          })
         });
       });
       describe('INVALID METHODS', () => {

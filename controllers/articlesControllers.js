@@ -2,7 +2,6 @@ const { updateArticle, insertComment, fetchCommentsByArticleId, fetchArticles } 
 
 exports.getArticleById = (req,res,next) => {
     const { article_id } = req.params;
-    // is there a way of not passing through req.query
     fetchArticles(article_id, req.query)
     .then(([article]) => {
         res.status(200).send({ article })
@@ -12,6 +11,9 @@ exports.getArticleById = (req,res,next) => {
 
 exports.patchArticle = (req, res, next ) => {
     const { article_id } = req.params;
+    if (!req.body.inc_votes || Object.keys(req.body).length > 1) next({status: 400,
+        msg: "Bad request"})
+
     updateArticle(article_id, req.body, req.query)
     .then(([article]) => {
         res.status(200).send({ article })
@@ -29,7 +31,13 @@ exports.getCommentsByArticleId = (req,res,next) => {
 
 exports.postCommentToArticle = (req, res, next) => {
     const { article_id } = req.params;
-    const comment = req.body;
+    const comment = {
+        "author": req.body.username,
+        "article_id": article_id,
+        ...req.body,
+    }
+    delete comment.username;
+
     insertComment(comment, article_id).then((comment) => {
         res.status(200).send({ comment })
     })
