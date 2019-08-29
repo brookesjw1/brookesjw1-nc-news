@@ -13,7 +13,8 @@ exports.updateComment = (comment_id, body) => {
       });
       return connection
         .select("comments.author",
-        "articles.title", "comments.votes", "comments.created_at", "comments.body")
+        "articles.title", "comments.votes", "comments.created_at", "comments.body",
+        "comments.comment_id")
         .from("comments")
         .join("articles", "comments.article_id", "articles.article_id")
         .where("comment_id", "=", comment_id);

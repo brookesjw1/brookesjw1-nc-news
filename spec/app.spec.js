@@ -10,13 +10,27 @@ const connection = require("../db/connection");
 describe("/api", () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
-  describe('DELETE', () => {
-    it('status: 405 and method not allowed', () => {
-      return request.delete('/api')
-      .expect(405)
-      .then(({ body }) => {
-        expect(body.msg).to.equal("Method not allowed")
-      })
+  // describe('GET', () => {
+  //   it('returns a JSON containing all available endpoints', () => {
+  //     return request
+  //     .get('/api')
+  //     .expect(200)
+  //     .then(({ body }) => {
+  //       console.log(body.endpoints)
+  //     })
+  //   });
+  // });
+  describe("INVALID METHODS", () => {
+    it("status: 405 and method not allowed", () => {
+      const invalidMethods = ["patch", "put", "delete", "post"];
+      const methodPromises = invalidMethods.map(method => {
+        return request[method]("/api")
+          .expect(405)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
     });
   });
   describe("/topics", () => {
@@ -63,7 +77,7 @@ describe("/api", () => {
     });
   });
   describe("/users", () => {
-    describe("/users/:username", () => {
+    describe("/:username", () => {
       describe("GET", () => {
         it("responds with status 200 and a user object with the properties username, avatar_url and name", () => {
           return request
@@ -340,7 +354,7 @@ describe("/api", () => {
                 article_id: 1,
                 topic: 'mitch',
                 created_at: "2018-11-15T12:21:54.171Z",
-                votes: 101,
+                votes: 100,
                 comment_count: '13',
                 body: 'I find this existence challenging'
               }
@@ -518,7 +532,7 @@ describe("/api", () => {
               .send({ username: "butter_bridge", body: "bla bla bla" })
               .expect(201)
               .then(({ body }) => {
-                expect(body.comments[0]).to.have.all.keys(
+                expect(body.comment).to.have.all.keys(
                   "comment_id",
                   "author",
                   "body",
@@ -593,7 +607,8 @@ describe("/api", () => {
               votes: 26,
               created_at: "2017-11-22T12:36:03.389Z",
               body: "Oh, I've got compassion running out of my " +
-                "nose, pal! I'm the Sultan of Sentiment!"
+                "nose, pal! I'm the Sultan of Sentiment!",
+              comment_id: 1
             }
           )
           });
@@ -607,7 +622,8 @@ describe("/api", () => {
               title: "They're not exactly dogs, are they?",
               votes: 6,
               created_at: "2017-11-22T12:36:03.389Z",
-              body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+              body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+              comment_id: 1
             }
           )
           });
@@ -624,7 +640,8 @@ describe("/api", () => {
                 votes: 16,
                 created_at: '2017-11-22T12:36:03.389Z',
                 body: "Oh, I've got compassion running out of my " +
-                  "nose, pal! I'm the Sultan of Sentiment!"
+                  "nose, pal! I'm the Sultan of Sentiment!",
+                  comment_id: 1
               })
           });
         });

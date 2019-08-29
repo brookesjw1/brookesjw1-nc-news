@@ -52,7 +52,9 @@ exports.fetchArticles = (id, sort_by, order, author, topic) => {
 exports.updateArticle = (id, body) => {
   return connection("articles")
     .where("article_id", "=", id)
-    .increment("votes", body.inc_votes)
+    .modify((query) => {
+      if (body.inc_votes) query.increment("votes", body.inc_votes)
+    })
     .then(() => {
       return exports.fetchArticles(id);
     });

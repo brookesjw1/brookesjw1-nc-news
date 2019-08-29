@@ -39,7 +39,8 @@ exports.postCommentToArticle = (req, res, next) => {
     delete comment.username;
 
     insertComment(comment, article_id).then((comments) => {
-        res.status(201).send({ comments })
+        const comment = comments[comments.length-1]
+        res.status(201).send({ comment })
     })
     .catch(next)
 }
