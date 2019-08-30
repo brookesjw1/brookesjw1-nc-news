@@ -228,6 +228,22 @@ describe("/api", () => {
           ])
         })
       });
+      it('status:400 when passed an invalid limit query', () => {
+        return request
+        .get("/api/articles?limit=invalid")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal("Bad request")
+        });
+      });
+      it('status: 400 when passed a negative number as a limit query', () => {
+        return request
+        .get("/api/articles?limit=-5")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal("Bad request")
+        });
+      });
       it('status: 400 when trying to sort by a column that doesnt exist', () => {
         return request
         .get('/api/articles?sort_by=nonexistentColumn')
@@ -528,6 +544,22 @@ describe("/api", () => {
               .then(({ body }) => {
                 expect(body.comments).to.be.sortedBy("created_at");
               });
+          });
+          it('status: 400 when passed an invalid limit query', () => {
+            return request
+            .get("/api/articles/1/comments?limit=invalid")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+            });
+          });
+          it('status: 400 when passed a negative integer as the limit query', () => {
+            return request
+            .get("/api/articles/1/comments?limit=-5")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Bad request")
+            });
           });
           it('status: 400 when passed an invalid article id', () => {
             return request

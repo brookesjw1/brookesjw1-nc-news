@@ -51,8 +51,7 @@ exports.fetchArticles = (id, sort_by, order, author, topic, limit, p) => {
           status: 404,
           msg: "Route not found"
         });
-
-      if (!order || order === "asc" || order === "desc") {
+      if ((!order || order === "asc" || order === "desc")&& (!limit || limit > 0)) {
         return articles;
       } else
         return Promise.reject({
@@ -88,8 +87,9 @@ exports.fetchCommentsByArticleId = (article_id, sort_by, order, limit, p) => {
       return Promise.all([comments, articleExistsCheck]);
     })
     .then(([comments, articleExists]) => {
+      
       if (articleExists) {
-        if (!order || order === "asc" || order === "desc") return comments;
+        if ((!order || order === "asc" || order === "desc") && (!limit || limit > 0)) return comments;
           else
             return Promise.reject({
               status: 400,
