@@ -73,12 +73,14 @@ exports.updateArticle = (id, body) => {
     });
 };
 
-exports.fetchCommentsByArticleId = (article_id, { sort_by, order }) => {
+exports.fetchCommentsByArticleId = (article_id, sort_by, order, limit, p) => {
   return connection
     .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where("article_id", "=", article_id)
     .orderBy(sort_by || "created_at", order || "desc")
+    .limit(limit || 10)
+    .offset(limit * (p-1) || 10 * (p-1))
     .then(comments => {
       const articleExistsCheck = comments.length
         ? true

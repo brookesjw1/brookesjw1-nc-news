@@ -457,6 +457,30 @@ describe("/api", () => {
                 ]);
               });
           });
+          it('defaults to a limit of 10', () => {
+            return request
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.have.lengthOf(10);
+              });
+          });
+          it('can accept a limit query and limit the number of responses accordingly', () => {
+            return request
+              .get("/api/articles/1/comments?limit=7")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.have.lengthOf(7);
+              });
+          });
+          it('can accept a p query enabling the user to specify the page at which to start', () => {
+            return request
+              .get("/api/articles/1/comments?p=2")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.have.lengthOf(3);
+              });
+          });
           it("responds with status 200 and comments are sorted by created_at by default", () => {
             return request
               .get("/api/articles/5/comments")
