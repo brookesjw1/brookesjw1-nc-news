@@ -126,11 +126,12 @@ describe("/api", () => {
   });
   describe("/articles", () => {
     describe("GET", () => {
-      it("responds with status 200 and an array of article objects, sorted by descending date by default", () => {
+      it("responds with status 200 and an array of article objects, sorted by descending date and limited to 10 responses by default. Also includes a total count indicating the total number of articles discounting the limit", () => {
         return request
           .get("/api/articles")
           .expect(200)
           .then(({ body }) => {
+            expect(body.total_count).to.equal(12);
             expect(body.articles[0]).to.have.all.keys(
               "author",
               "title",
@@ -138,10 +139,28 @@ describe("/api", () => {
               "topic",
               "created_at",
               "votes",
-              "comment_count"
+              "comment_count",
             );
-            expect(body.articles).to.have.lengthOf(12);
+            expect(body.articles).to.have.lengthOf(10);
             expect(body.articles).to.be.sortedBy("created_at", {descending: true})
+          });
+      });
+      it('can accept a limit query enabling the user to change the number of responses', () => {
+        return request
+          .get("/api/articles?limit=5")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.total_count).to.equal(12);
+            expect(body.articles).to.have.lengthOf(5);
+          });
+      });
+      it('can accept a p query which enables the user to specify the page at which to start', () => {
+        return request
+          .get("/api/articles?p=2")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.total_count).to.equal(12);
+            expect(body.articles).to.have.lengthOf(2);
           });
       });
       it('can be sorted by votes', () => {
@@ -161,6 +180,7 @@ describe("/api", () => {
       });
       it('can be filtered by author', () => {
         return request.get('/api/articles?author=butter_bridge').expect(200).then(({ body }) => {
+          expect(body.total_count).to.equal(3)
           expect(body.articles).to.eql([
             {
               author: 'butter_bridge',
@@ -194,6 +214,7 @@ describe("/api", () => {
       });
       it('can be filtered by topic', () => {
         return request.get('/api/articles?topic=cats').expect(200).then(({ body }) => {
+          expect(body.total_count).to.equal(1);
           expect(body.articles).to.eql([
             {
               author: 'rogersop',

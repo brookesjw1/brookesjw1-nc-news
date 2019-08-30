@@ -11,7 +11,18 @@ const checkArticleExists = article_id => {
           });
 };
 
-exports.fetchArticles = (id, sort_by, order, author, topic) => {
+exports.countArticles = (author, topic) => {
+  return connection("articles")
+  .modify(query => {
+    if (author) query.where({ "articles.author": author });
+    if (topic) query.where({ "articles.topic": topic });
+  })
+  .then(articles => {
+    return articles.length;
+  })
+}
+
+exports.fetchArticles = (id, sort_by, order, author, topic, limit, p) => {
   return connection
     .select(
       "articles.author",
@@ -21,7 +32,7 @@ exports.fetchArticles = (id, sort_by, order, author, topic) => {
       "articles.created_at",
       "articles.votes"
     )
-    .count({ comment_count: "comments.comment_id" })
+    .count({ comment_count: "comments.comment_id"})
     .from("articles")
     .leftJoin("comments", "articles.article_id", "comments.article_id")
     .groupBy("articles.article_id")
@@ -32,6 +43,8 @@ exports.fetchArticles = (id, sort_by, order, author, topic) => {
       if (author) query.where({ "articles.author": author });
       if (topic) query.where({ "articles.topic": topic });
     })
+    .limit(limit || 10)
+    .offset(limit * (p-1) || 10 * (p-1))
     .then(articles => {
       if (articles.length === 0)
         return Promise.reject({
