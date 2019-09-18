@@ -77,6 +77,19 @@ describe("/api", () => {
     });
   });
   describe("/users", () => {
+    describe('GET', () => {
+      it('responds with status 200 and an array of users', () => {
+        return request
+        .get("/api/users")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.users[0]).to.eql({ username: 'butter_bridge',
+          avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg',
+          name: 'jonny'
+        })
+        })
+      });
+    });
     describe("/:username", () => {
       describe("GET", () => {
         it("responds with status 200 and a user object with the properties username, avatar_url and name", () => {

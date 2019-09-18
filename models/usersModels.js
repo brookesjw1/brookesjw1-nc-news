@@ -15,3 +15,11 @@ exports.fetchUserByUsername = (username) => {
             })
 
 }
+
+exports.fetchUsers = () => {
+    return connection("users")
+            .select('*')
+            .then(userArray => {
+                return userArray
+            })
+}

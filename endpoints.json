@@ -9,6 +9,14 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "GET /api/users": {
+    "description": "serves an array of user objects",
+    "queries": [],
+    "exampleResponse": {"username": "butter_bridge",
+      "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+      "name": "jonny"
+    }
+  },
   "GET /api/users/:username": {
     "description": "serves a user object for the given username",
     "queries": [],
@@ -118,3 +126,4 @@
     "queries": []
   }
 }
+
